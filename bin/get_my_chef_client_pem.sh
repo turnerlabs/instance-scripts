@@ -25,13 +25,19 @@ PEM_PATH="s3://${BUCKET}/chef/client.pem/${CHEF_ORG}/${INSTANCE_NAME}"
 VALIDATOR="s3://${BUCKET}/chef/${CHEF_ORG}/${CHEF_ORG}-validator.pem"
 CLIENT="s3://${BUCKET}/chef/${CHEF_ORG}/client.rb"
 
-# If there is a PEM, we use that. Otherwise, grab the validator
-aws s3 ls $PEM_PATH > /dev/null
-if [ $? -eq 0 ] ; then
-	aws s3 cp $PEM_PATH /etc/chef/client.pem
-else
-	aws s3 cp $VALIDATOR /etc/chef/${CHEF_ORG}-validator.pem
+if [ ! -f /etc/chef/client.pem ] ; then
+	# If there is a PEM, we use that. Otherwise, grab the validator
+	aws s3 ls $PEM_PATH > /dev/null
+	if [ $? -eq 0 ] ; then
+		aws s3 cp $PEM_PATH /etc/chef/client.pem
+	else
+		aws s3 cp $VALIDATOR /etc/chef/${CHEF_ORG}-validator.pem
+	fi
 fi
 
+
+
 # Also get the client.rb file
-aws s3 cp $CLIENT /etc/chef/client.rb
+if [ ! -f /etc/chef/client.rb ] ; then
+	aws s3 cp $CLIENT /etc/chef/client.rb
+fi

@@ -54,7 +54,8 @@ For Chef, you need a deployment bucket with the following prefix layout:
 /chef/$organization/$organization-validator.pem
 
 The following Cloudformation Resource snippet outlines the necessary Instance role needed to support these scripts:
-	    "InstanceIamInstanceRole": {
+```json
+		"InstanceIamInstanceRole": {
 	       "Type": "AWS::IAM::Role",
 	       "Properties": {
 	          "AssumeRolePolicyDocument": {
@@ -122,5 +123,6 @@ The following Cloudformation Resource snippet outlines the necessary Instance ro
 				]
 	    	}
 	    }
+```	    
 
 The AllowAccessToClientPem statement is designed to only allow the instance access to the specific organization and client.pem file for the instance name. Least Privledge for the win. 

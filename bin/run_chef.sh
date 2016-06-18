@@ -1,8 +1,13 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # I am an EC2 Instance.
 # I have a tag called chef_runlist. I might also have tags called chef_organization and chef_environment
 # I have an instance profile with permission to an artifact bucket
+
+if [ `whoami` != "root" ] ; then
+	echo "Run as root"
+	exit 1
+fi
 
 # Get my instance ID so I can get my tags
 INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
@@ -15,6 +20,11 @@ if [ -z "$INSTANCE_ID" ] || [ -z "$REGION" ]  ; then
   exit 1
 fi
 
+INSTANCE_NAME=`aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCE_ID" --query "Tags[?Key=='Name'].{Value:Value}" --output=text`
+if [ $? -ne 0 ] || [ -z "$INSTANCE_NAME" ] ; then
+  echo "unable to find Name tag. Don't know how to proceed. Aborting...."
+  exit 1
+fi
 
 # get my "chef_*" tags
 CHEF_ORGANIZATION=`aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCE_ID" --query "Tags[?Key=='chef_organization'].{Value:Value}" --output=text`
