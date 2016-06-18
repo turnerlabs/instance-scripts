@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# These scripts are executed at boot time
+
+if [`whoami` != "root" ] ; then
+	echo "Must run as root. Aborting..."
+	exit 1
+fi
+
+
+# Get my instance ID so I can get my tags
+INSTANCE_ID=`curl -s http://169.254.169.254/latest/meta-data/instance-id`
+
+# Get my region so I know what API endpoint to talk to
+REGION=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/.$//'`
+
+my_hostname=`aws ec2 describe-tags --region $REGION --filter "Name=resource-id,Values=$INSTANCE_ID" --query "Tags[?Key=='hostname'].{Value:Value}" --output=text | tr '[:upper:]' '[:lower:]'`
+if [ ! -z "my_hostname"] ; then
+	my_hostname=`echo $my_hostname | sed s/instance_id/$INSTANCE_ID/g`
+	hostname $my_hostname
+fi
+
+
+# Get the latest instance scripts. Root user is configured to pull only
+cd /opt/instance-scripts && git pull
+
+# This script will populate Route 53 based on the tag "dnsname"
+/opt/instance-scripts/bin/update_public_route53.sh
+
+# Lets run chef if the chef_runlist tag exists
+/opt/instance-scripts/bin/run_chef.sh
