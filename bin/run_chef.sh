@@ -58,8 +58,8 @@ fi
 # Now run chef
 chef-client --force-formatter -r $CHEF_RUNLIST -E $CHEF_ENVIRONMENT | tee /var/log/chef_run.log
 
-
-# Save the client.pem back into the bucket so the next instance can get it
-/opt/instance-scripts/bin/save_my_chef_client_pem.sh $CHEF_BUCKET $CHEF_ORGANIZATION $INSTANCE_NAME
-
+if [ $? -ne 0 ] ; then
+	# Save the client.pem back into the bucket so the next instance can get it
+	/opt/instance-scripts/bin/save_my_chef_client_pem.sh $CHEF_BUCKET $CHEF_ORGANIZATION $INSTANCE_NAME
+fi
 
