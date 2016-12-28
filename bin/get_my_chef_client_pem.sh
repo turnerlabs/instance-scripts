@@ -29,9 +29,17 @@ if [ ! -f /etc/chef/client.pem ] ; then
 	# If there is a PEM, we use that. Otherwise, grab the validator
 	aws s3 ls $PEM_PATH > /dev/null
 	if [ $? -eq 0 ] ; then
+		echo "Using Existing PEM"
 		aws s3 cp $PEM_PATH /etc/chef/client.pem
+		if [ $? -ne 0 ] ; then
+			exit 1
+		fi
 	else
+		echo "Grabbing Validator"
 		aws s3 cp $VALIDATOR /etc/chef/${CHEF_ORG}-validator.pem
+		if [ $? -ne 0 ] ; then
+			exit 1
+		fi
 	fi
 fi
 
@@ -40,4 +48,7 @@ fi
 # Also get the client.rb file
 if [ ! -f /etc/chef/client.rb ] ; then
 	aws s3 cp $CLIENT /etc/chef/client.rb
+	if [ $? -ne 0 ] ; then
+		exit 1
+	fi
 fi
