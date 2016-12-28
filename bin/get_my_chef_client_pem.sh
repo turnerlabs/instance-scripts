@@ -20,14 +20,15 @@ if [ -z "$INSTANCE_NAME" ] ; then
 	exit 1
 fi
 
-
+ 
 PEM_PATH="s3://${BUCKET}/chef/client.pem/${CHEF_ORG}/${INSTANCE_NAME}"
+PEM_KEY="chef/client.pem/${CHEF_ORG}/${INSTANCE_NAME}"
 VALIDATOR="s3://${BUCKET}/chef/${CHEF_ORG}/${CHEF_ORG}-validator.pem"
 CLIENT="s3://${BUCKET}/chef/${CHEF_ORG}/client.rb"
 
 if [ ! -f /etc/chef/client.pem ] ; then
 	# If there is a PEM, we use that. Otherwise, grab the validator
-	aws s3 ls $PEM_PATH > /dev/null
+	aws s3api head-object --bucket $BUCKET --key $PEM_KEY --output text
 	if [ $? -eq 0 ] ; then
 		echo "Using Existing PEM"
 		aws s3 cp $PEM_PATH /etc/chef/client.pem
